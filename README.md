@@ -1,50 +1,76 @@
-# Remix IDE Blank Template
+# 🚀 PrasoonWallet — My First Blockchain Smart Contract
 
-Welcome to your new **Remix IDE Blank Workspace**!
+**PrasoonWallet** is a secure, owner-controlled Ethereum wallet written in Solidity.  
+It allows depositing, withdrawing, and transferring Ether using pure blockchain logic — with no third-party control.
 
-This workspace has been generated using the "Blank Template" option in Remix IDE. It starts with only minimal configuration files, giving you full control to build your project from scratch.
-
----
-
-## What's Included?
-
-- **`remix.config.json`**: Default Remix IDE workspace configuration.
-- **`.prettierrc.json`**: Basic Prettier formatting rules for code consistency.
-
-No contract files, folders, or sample code are included.
+This is my **first fully working blockchain project**, built and deployed using Remix IDE.
 
 ---
 
-## Getting Started
+## 🌟 Features
 
-1. **Create Files & Folders**
+### ✔ Owner-Based Wallet  
+Only the contract deployer (owner) can withdraw or transfer ETH.
 
-   - Add new Solidity files, scripts, or folders as needed for your project.
-   - You can organize your workspace structure in any way you like.
+### ✔ Receive ETH Directly  
+The wallet automatically accepts Ether using Solidity’s `receive()` function.
 
-2. **Setup Project Settings** (Optional)
+### ✔ Secure Withdrawals  
+The owner can safely withdraw ETH back to their own account.
 
-   - Modify `remix.config.json` or add additional configuration files as your project grows.
+### ✔ Transfer ETH to Any Address  
+Send ETH from the contract to any external wallet.
 
-3. **Write & Compile Smart Contracts**
+### ✔ Event Logging  
+Emits events for every major action:
+- `Deposit`
+- `Withdraw`
+- `TransferSent`
 
-   - Use the **Solidity Compiler** and **Deploy & Run Transactions** plugins (available in Remix IDE's left sidebar) to develop and test your contracts.
-
-4. **(Optional) Initialize Git**
-
-   - If you checked "Initialize as a Git repository" during workspace creation, you can start committing your code immediately.
-
----
-
-## Useful Resources
-
-- [Remix IDE Documentation](https://remix-ide.readthedocs.io/)
-- [Solidity Language Documentation](https://docs.soliditylang.org/)
-- [Remix IDE Community Forum](https://forum.remix.ethereum.org/)
+### ✔ View Contract Balance  
+Check the ETH balance stored inside the smart contract.
 
 ---
 
-Happy coding! 🚀 
+## 🛠️ Smart Contract Code
 
-_Remix IDE Team_
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
+contract PrasoonWallet {
+    address public owner;
+
+    event Deposit(address indexed from, uint amount);
+    event Withdraw(address indexed to, uint amount);
+    event TransferSent(address indexed from, address indexed to, uint amount);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not Owner");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    receive() external payable {
+        emit Deposit(msg.sender, msg.value);
+    }
+
+    function withdraw(uint amount) external onlyOwner {
+        require(address(this).balance >= amount, "Not enough balance");
+        payable(owner).transfer(amount);
+        emit Withdraw(owner, amount);
+    }
+
+    function sendTo(address payable to, uint amount) external onlyOwner {
+        require(address(this).balance >= amount, "Insufficient balance");
+        to.transfer(amount);
+        emit TransferSent(msg.sender, to, amount);
+    }
+
+    function getBalance() external view returns (uint) {
+        return address(this).balance;
+    }
+}
